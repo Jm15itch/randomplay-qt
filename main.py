@@ -1,37 +1,124 @@
 from subprocess import Popen, PIPE
-import time
+import os
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
+import select
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import QFileDialog, QDialog
+from PyQt5.QtGui import QPalette
 
-rp = Popen(["randomplay", ""], stdin=PIPE, shell=False)
+#rp = Popen(["randomplay", ""], shell=False)
 
-class App(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.title = 'RandomPlay - PYQT5'
-        self.left = 10
-        self.top = 10
-        self.width = 320
-        self.height = 200
-        self.initUI()
-    def initUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        button = QPushButton('Skip', self)
-        button.setToolTip('This is an example button')
-        button.move(100,70)
-        button.clicked.connect(self.on_click)
-        self.show()
-    @pyqtSlot()
-    def on_click(self):
-        rp.communicate(input=b'f')
+global rp
+rp = "NULL"
 
-def main():
-    app = QApplication(sys.argv)
-    ex = Example()
-    sys.exit(app.exec_())
+try:
 
-if __name__ == '__main__':
-    main()
+    class MainWindow(QMainWindow):
+        def __init__(self):
+            QMainWindow.__init__(self)
+
+            self.setFixedSize(QSize(250, 350))
+            self.setWindowTitle("QT-RandomPlay")
+
+            self.SongLabel = QLabel(self)
+
+            self.SongLabel.setText("No Song Selected")
+            self.SongLabel.setAutoFillBackground(True)
+            palette = QPalette()
+            palette.setColor(QPalette.Window,Qt.black)
+            self.SongLabel.setPalette(palette)
+            self.SongLabel.setAlignment(Qt.AlignCenter)
+            self.SongLabel.move(50, 275)
+            self.SongLabel.resize(150,32)
+
+            pybutton = QPushButton('Start RandomPlay', self)
+            pybutton.clicked.connect(self.startRandomPlay)
+            pybutton.resize(150,32)
+            pybutton.move(50, 50)
+
+            pybutton = QPushButton('Skip', self)
+            pybutton.clicked.connect(self.SkipSong)
+            pybutton.resize(75,32)
+            pybutton.move(150, 150)
+
+            pybutton = QPushButton('Rewind', self)
+            pybutton.clicked.connect(self.RewindSong)
+            pybutton.resize(75,32)
+            pybutton.move(25, 150)
+
+            pybutton = QPushButton('Like!', self)
+            pybutton.clicked.connect(self.LikeSong)
+            pybutton.resize(75,32)
+            pybutton.move(150, 200)
+
+            pybutton = QPushButton('Dislike', self)
+            pybutton.clicked.connect(self.DislikeSong)
+            pybutton.resize(75,32)
+            pybutton.move(25, 200)
+
+        def startRandomPlay(self):
+            global rp
+            Directory = "NULL"
+
+            while (not os.path.exists(Directory)):
+                Directory = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+                print("Select directory: " + Directory)
+
+            rp = Popen(["randomplay", Directory], stdin=PIPE, stdout=PIPE, shell=False, bufsize=1, universal_newlines=True, encoding="latin-1")
+            self.RefreshSongDisplay()
+
+        def RefreshSongDisplay(self):
+            global rp
+            poll_obj = select.poll()
+            poll_obj.register(rp.stdout, select.POLLIN)
+            line = []
+            while True:
+                poll_result = poll_obj.poll(0)
+                if poll_result:
+                    line.append( rp.stdout.readline() )
+                else:
+                    break;
+            matching = [s for s in line if "TITLE" in s][0]
+            self.SongLabel.setText(matching)
+            return
+
+        def SkipSong(self):
+            global rp
+            rp.stdin.write('f')
+            rp.stdin.flush()
+            self.RefreshSongDisplay()
+
+        def RewindSong(self):
+            global rp
+            rp.stdin.write('b')
+            rp.stdin.flush()
+            self.RefreshSongDisplay()
+
+        def LikeSong(self):
+            global rp
+            rp.stdin.write('+')
+            rp.stdin.flush()
+
+        def DislikeSong(self):
+            global rp
+            rp.stdin.write('-')
+            rp.stdin.flush()
+
+
+    if __name__ == "__main__":
+        app = QtWidgets.QApplication(sys.argv)
+        mainWin = MainWindow()
+        mainWin.show()
+        app.exec_()
+        rp.stdin.write('q')
+        rp.stdin.flush()
+        sys.exit(1)
+
+
+except KeyboardInterrupt:
+    rp.stdin.write('q')
+    rp.stdin.flush()
+    sys.exit(1)
