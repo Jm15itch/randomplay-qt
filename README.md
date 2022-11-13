@@ -1,5 +1,5 @@
 # randomplay-qt
-A python based QT5 application which interacts with (randomplay)[https://tracker.debian.org/pkg/randomplay]
+A python based QT5 application which interacts with [randomplay](https://tracker.debian.org/pkg/randomplay)
 
 ## Todo
 - [x] Develop base application with functioning interacts with randomplay
