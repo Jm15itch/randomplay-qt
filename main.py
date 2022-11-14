@@ -37,7 +37,12 @@ try:
             pybutton = QPushButton('Start RandomPlay', self)
             pybutton.clicked.connect(self.startRandomPlay)
             pybutton.resize(150,32)
-            pybutton.move(50, 50)
+            pybutton.move(50, 30)
+
+            pybutton = QPushButton('Toggle Sound', self)
+            pybutton.clicked.connect(self.ToggleSound)
+            pybutton.resize(150,32)
+            pybutton.move(50, 80)
 
             pybutton = QPushButton('Skip', self)
             pybutton.clicked.connect(self.SkipSong)
@@ -84,6 +89,11 @@ try:
             matching = [s for s in line if "TITLE" in s][0]
             self.SongLabel.setText(matching)
             return
+
+        def ToggleSound(self):
+            global rp
+            rp.stdin.write('p')
+            rp.stdin.flush()
 
         def SkipSong(self):
             global rp
