@@ -14,7 +14,7 @@ A python based QT5 application which interacts with [randomplay](https://tracker
 - [ ] Maybe add a history (e.g. previous music folder usage etc)
 - [ ] UI customisation
 
-## Build
+## Build & Run
 
 ```
 git clone https://github.com/Jm15itch/randomplay-qt
