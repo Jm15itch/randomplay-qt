@@ -20,5 +20,5 @@ A python based QT5 application which interacts with [randomplay](https://tracker
 git clone https://github.com/Jm15itch/randomplay-qt
 cd randomplay-qt
 pip install -r requirements.txt
-py main.py
+python3 main.py
 ```
