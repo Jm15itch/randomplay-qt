@@ -9,12 +9,23 @@ from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QFileDialog, QDialog
 from PyQt5.QtGui import QPalette
 
-#rp = Popen(["randomplay", ""], shell=False)
 
-global rp
+#Define rp as a global variable so it can be used in all functions. The alternative is to put it in the class, however this stops the keyboardInterrupt catcher that terminates randomplay
 rp = "NULL"
 
+#Keyboard Interrupt catcher (See exception)
 try:
+
+    # this function sends keyboard input to randomplay
+    def SendControl(out):
+        global rp
+        try:
+            rp.stdin.write(out)
+            rp.stdin.flush()
+            return True
+        except:
+            return False
+
 
     class MainWindow(QMainWindow):
         def __init__(self):
@@ -64,6 +75,8 @@ try:
             pybutton.resize(75,32)
             pybutton.move(25, 200)
 
+
+        #Starts randomplay as a subprocess
         def startRandomPlay(self):
             global rp
             Directory = "NULL"
@@ -75,6 +88,9 @@ try:
             rp = Popen(["randomplay", Directory], stdin=PIPE, stdout=PIPE, shell=False, bufsize=1, universal_newlines=True, encoding="latin-1")
             self.RefreshSongDisplay()
 
+
+        # The below function needs a rework. I think it's not reading the stdout properly.
+        # Consider it entirely broken.
         def RefreshSongDisplay(self):
             global rp
             poll_obj = select.poll()
@@ -90,45 +106,37 @@ try:
             self.SongLabel.setText(matching)
             return
 
+
+        # The functions below control randomplay
+
         def ToggleSound(self):
-            global rp
-            rp.stdin.write('p')
-            rp.stdin.flush()
+            SendControl('p')
 
         def SkipSong(self):
-            global rp
-            rp.stdin.write('f')
-            rp.stdin.flush()
-            self.RefreshSongDisplay()
+            SendControl('f')
 
         def RewindSong(self):
-            global rp
-            rp.stdin.write('b')
-            rp.stdin.flush()
-            self.RefreshSongDisplay()
+            SendControl('b')
 
         def LikeSong(self):
-            global rp
-            rp.stdin.write('+')
-            rp.stdin.flush()
+            SendControl('+')
 
         def DislikeSong(self):
-            global rp
-            rp.stdin.write('-')
-            rp.stdin.flush()
+            SendControl('-')
 
+
+    # __main__ here
 
     if __name__ == "__main__":
         app = QtWidgets.QApplication(sys.argv)
         mainWin = MainWindow()
         mainWin.show()
-        app.exec_()
-        rp.stdin.write('q')
-        rp.stdin.flush()
+        app.exec_() # Execute QT Application
+
+        SendControl('q') # terminate randomplay when QT application stops
         sys.exit(1)
 
 
+# This captures the keyboardinperrupt (ctrl + c) and terminates randomplay so it doesn't run headless in the background.
 except KeyboardInterrupt:
-    rp.stdin.write('q')
-    rp.stdin.flush()
-    sys.exit(1)
+    SendControl('q')
