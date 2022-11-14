@@ -6,6 +6,7 @@ A python based QT5 application which interacts with [randomplay](https://tracker
 - [ ] Provide all options to randomplay via the application
 - [ ] Output the stdout of randomplay to a terminal on the application (easy debugging and temporary solution until the next todo is completed)
 - [ ] Add console arguments to allow for scripting.
+- [ ] Volume controls
 - [ ] Allow the application to read randomplay outputs (list currently playing song etc)
 - [ ] Beautify the application (images for buttons, etc)
 ### Backlog
